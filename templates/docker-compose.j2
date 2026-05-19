@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: {{ project_name }}_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  web:
+    build: .
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.production
+    depends_on:
+      - db
+
+{% if "redis" in features %}
+  redis:
+    image: redis:alpine
+{% endif %}
+
+{% if "celery" in features %}
+  celery:
+    build: .
+    command: celery -A config worker -l info
+    depends_on:
+      - db
+{% endif %}
+
+{% if "beat" in features %}
+  celery-beat:
+    build: .
+    command: celery -A config beat -l info
+    depends_on:
+      - db
+{% endif %}
+
+{% if "flower" in features %}
+  flower:
+    build: .
+    command: celery -A config flower
+    ports:
+      - "5555:5555"
+{% endif %}
