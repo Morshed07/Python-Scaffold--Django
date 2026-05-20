@@ -4,6 +4,8 @@ services:
 
   db:
     image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: {{ project_name }}_db
       POSTGRES_USER: postgres
@@ -14,6 +16,8 @@ services:
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
     ports:
       - "8000:8000"
+    environment:
+      - DJANGO_ENV=production
     env_file:
       - .env.production
     depends_on:
@@ -28,16 +32,26 @@ services:
   celery:
     build: .
     command: celery -A config worker -l info
+    environment:
+      - DJANGO_ENV=production
+    env_file:
+      - .env.production
     depends_on:
       - db
+      {% if "redis" in features %}- redis{% endif %}
 {% endif %}
 
 {% if "beat" in features %}
   celery-beat:
     build: .
     command: celery -A config beat -l info
+    environment:
+      - DJANGO_ENV=production
+    env_file:
+      - .env.production
     depends_on:
       - db
+      {% if "redis" in features %}- redis{% endif %}
 {% endif %}
 
 {% if "flower" in features %}
@@ -46,4 +60,13 @@ services:
     command: celery -A config flower
     ports:
       - "5555:5555"
+    environment:
+      - DJANGO_ENV=production
+    env_file:
+      - .env.production
+    depends_on:
+      {% if "redis" in features %}- redis{% endif %}
 {% endif %}
+
+volumes:
+  postgres_data:

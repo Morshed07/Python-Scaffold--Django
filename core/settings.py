@@ -1,24 +1,21 @@
 import os
 
-
 def create_settings(project_name):
-
     settings_dir = "config/settings"
-
     os.makedirs(settings_dir, exist_ok=True)
 
-    open(f"{settings_dir}/__init__.py", "w").close()
+    # Make development the default fallback so manage.py works out of the box
+    with open(f"{settings_dir}/__init__.py", "w") as f:
+        f.write("from .development import *\n")
 
-    base = """
-from pathlib import Path
+    base = """from pathlib import Path
 import os
-from dotenv import load_dotenv
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-load_dotenv(BASE_DIR / ".env.development")
-
-SECRET_KEY = os.getenv("SECRET_KEY")
+# Don't load_dotenv here, let the environment-specific files handle it
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-insecure-key-for-dev")
 
 DEBUG = False
 
@@ -78,28 +75,30 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 STATIC_URL = "/static/"
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 """
 
-    development = """
+    development = """import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Calculate BASE_DIR here to load the right .env file BEFORE importing base
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(BASE_DIR / ".env.development")
+
+# Now import base (it will use the env vars we just loaded)
 from .base import *
 
 DEBUG = True
-
 ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
@@ -110,29 +109,32 @@ DATABASES = {
 }
 """
 
-    production = f"""
-from .base import *
-import os
+    production = """import os
+from pathlib import Path
+from dotenv import load_dotenv
 
+# Load production env BEFORE importing base
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 load_dotenv(BASE_DIR / ".env.production")
+
+from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = os.getenv(
-    "ALLOWED_HOSTS",
-    ""
-).split(",")
+# Safely split hosts, ignoring empty strings
+env_hosts = os.getenv("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = [host.strip() for host in env_hosts.split(",") if host.strip()]
 
-DATABASES = {{
-    "default": {{
+DATABASES = {
+    "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB"),
         "USER": os.getenv("POSTGRES_USER"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_HOST"),
-        "PORT": os.getenv("POSTGRES_PORT"),
-    }}
-}}
+        "HOST": os.getenv("POSTGRES_HOST", "db"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+    }
+}
 """
 
     with open(f"{settings_dir}/base.py", "w") as f:
