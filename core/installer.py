@@ -71,6 +71,8 @@ def create_project(project_name, features):
 
     print("\n✅ Project created successfully!\n")
 
+    print(" Take Love From Morshed Nayeem ❤️\n")
+
     print("Next steps:\n")
 
     if os.name == "nt":
