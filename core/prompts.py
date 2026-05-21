@@ -8,6 +8,9 @@ def ask_features():
     if typer.confirm("Include Django REST Framework?"):
         features.append("drf")
 
+    if typer.confirm("Include Pillow?"):
+        features.append("pillow")
+
     if typer.confirm("Include Celery?"):
         features.append("celery")
 
@@ -19,9 +22,6 @@ def ask_features():
 
     if typer.confirm("Include Flower?"):
         features.append("flower")
-
-    if typer.confirm("Include Pillow?"):
-        features.append("pillow")
 
     if typer.confirm("Include Docker?", default=True):
         features.append("docker")
