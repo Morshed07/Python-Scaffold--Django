@@ -11,6 +11,9 @@ def ask_features():
     if typer.confirm("Include Pillow?"):
         features.append("pillow")
 
+    if typer.confirm("Include WhiteNoise?"):
+        features.append("whitenoise")
+
     if typer.confirm("Include Celery?"):
         features.append("celery")
 

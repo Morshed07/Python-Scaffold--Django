@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
+
 def create_settings(config_name="config", selected_features=None):
     """Refactored to ONLY handle setting up the split settings architecture."""
     
@@ -29,11 +30,26 @@ def create_settings(config_name="config", selected_features=None):
     if "beat" in selected_features:
         additional_apps.append('\n    "django_celery_beat",')
 
+    # Add WhiteNoise middleware dynamically if selected (it must go right after SecurityMiddleware)
     whitenoise_middleware = ""
     whitenoise_settings = ""
     if "whitenoise" in selected_features:
         whitenoise_middleware = '\n    "whitenoise.middleware.WhiteNoiseMiddleware",'
-        whitenoise_settings = '\n# WhiteNoise Static Files Storage\nSTATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"\n'
+        
+        # Django 4.2+ unified STORAGES dictionary
+        whitenoise_settings = """
+# ==========================================
+# File Storage Configuration
+# ==========================================
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+"""
 
     # ==========================================
     # FILE TEMPLATES
