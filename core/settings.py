@@ -35,9 +35,10 @@ def create_settings(config_name="config", selected_features=None):
     whitenoise_settings = ""
     if "whitenoise" in selected_features:
         whitenoise_middleware = '\n    "whitenoise.middleware.WhiteNoiseMiddleware",'
-        
+
         # Django 4.2+ unified STORAGES dictionary
         whitenoise_settings = """
+
 # ==========================================
 # File Storage Configuration
 # ==========================================

@@ -13,7 +13,6 @@ dist/
 *.egg-info/
 
 # IDEs
-.vscode/
 .idea/
 
 # OS
@@ -21,8 +20,6 @@ dist/
 Thumbs.db
 
 # Environment files
-.env
-.env.*
 !.env.example
 
 # Logs
@@ -50,3 +47,5 @@ htmlcov/
 */__pycache__/
 */*.py[cod]
 */*$py.class
+config.bat
+node_modules
